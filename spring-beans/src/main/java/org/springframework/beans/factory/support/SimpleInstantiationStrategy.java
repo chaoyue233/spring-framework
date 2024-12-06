@@ -16,11 +16,6 @@
 
 package org.springframework.beans.factory.support;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.function.Supplier;
-
 import org.springframework.beans.BeanInstantiationException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanFactory;
@@ -28,6 +23,11 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.function.Supplier;
 
 /**
  * Simple object instantiation strategy for use in a BeanFactory.
@@ -39,6 +39,8 @@ import org.springframework.util.StringUtils;
  * @author Juergen Hoeller
  * @author Stephane Nicoll
  * @since 1.1
+ *
+ * 使用常规反射的方式进行实例化
  */
 public class SimpleInstantiationStrategy implements InstantiationStrategy {
 
@@ -84,6 +86,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 	@Override
 	public Object instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner) {
 		// Don't override the class with CGLIB if no overrides.
+		// 判断是否有方法重写（lookup-method、replace-method）如果没有直接使用反射构建
 		if (!bd.hasMethodOverrides()) {
 			Constructor<?> constructorToUse;
 			synchronized (bd.constructorArgumentLock) {
@@ -94,6 +97,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 						throw new BeanInstantiationException(clazz, "Specified class is an interface");
 					}
 					try {
+						// 获取无参构造器，并设置到BeanDefinition中
 						constructorToUse = clazz.getDeclaredConstructor();
 						bd.resolvedConstructorOrFactoryMethod = constructorToUse;
 					}
@@ -106,6 +110,7 @@ public class SimpleInstantiationStrategy implements InstantiationStrategy {
 		}
 		else {
 			// Must generate CGLIB subclass.
+			// 有方法重写则使用子类（cglib）去生成
 			return instantiateWithMethodInjection(bd, beanName, owner);
 		}
 	}

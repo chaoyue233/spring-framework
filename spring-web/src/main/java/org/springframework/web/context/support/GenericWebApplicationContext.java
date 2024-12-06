@@ -162,6 +162,7 @@ public class GenericWebApplicationContext extends GenericApplicationContext
 
 	/**
 	 * Register request/session scopes, environment beans, a {@link ServletContextAwareProcessor}, etc.
+	 * 处理web场景下 prepareBeanFactory 中没有处理完成的那些功能
 	 */
 	@Override
 	protected void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
@@ -169,6 +170,7 @@ public class GenericWebApplicationContext extends GenericApplicationContext
 			beanFactory.addBeanPostProcessor(new ServletContextAwareProcessor(this.servletContext));
 			beanFactory.ignoreDependencyInterface(ServletContextAware.class);
 		}
+		// 增加新的作用域 request session application
 		WebApplicationContextUtils.registerWebApplicationScopes(beanFactory, this.servletContext);
 		WebApplicationContextUtils.registerEnvironmentBeans(beanFactory, this.servletContext);
 	}
@@ -208,6 +210,7 @@ public class GenericWebApplicationContext extends GenericApplicationContext
 	protected void initPropertySources() {
 		ConfigurableEnvironment env = getEnvironment();
 		if (env instanceof ConfigurableWebEnvironment configurableWebEnv) {
+			// 将servletContextInitParams和servletConfigInitParams加入到environment中
 			configurableWebEnv.initPropertySources(this.servletContext, null);
 		}
 	}

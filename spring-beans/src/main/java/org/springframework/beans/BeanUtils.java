@@ -193,6 +193,7 @@ public abstract class BeanUtils {
 				int parameterCount = ctor.getParameterCount();
 				Assert.isTrue(args.length <= parameterCount, "Can't specify more arguments than constructor parameters");
 				if (parameterCount == 0) {
+					// 原始的反射api，创建一个实例
 					return ctor.newInstance();
 				}
 				Class<?>[] parameterTypes = ctor.getParameterTypes();

@@ -16,9 +16,6 @@
 
 package org.springframework.beans.factory.config;
 
-import java.beans.PropertyEditor;
-import java.util.concurrent.Executor;
-
 import org.springframework.beans.PropertyEditorRegistrar;
 import org.springframework.beans.PropertyEditorRegistry;
 import org.springframework.beans.TypeConverter;
@@ -30,6 +27,9 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.core.metrics.ApplicationStartup;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringValueResolver;
+
+import java.beans.PropertyEditor;
+import java.util.concurrent.Executor;
 
 /**
  * Configuration interface to be implemented by most bean factories. Provides
@@ -48,6 +48,8 @@ import org.springframework.util.StringValueResolver;
  * @see org.springframework.beans.factory.BeanFactory
  * @see org.springframework.beans.factory.ListableBeanFactory
  * @see ConfigurableListableBeanFactory
+ *
+ * 为Bean工厂提供了可配置的能力
  */
 public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, SingletonBeanRegistry {
 

@@ -22,6 +22,10 @@ package org.springframework.context;
  * @author Mark Fisher
  * @author Juergen Hoeller
  * @since 3.0
+ *
+ * 生命周期相关的几个阶段，在对应的节点会调用对应方法
+ * start stop isRunning
+ * onRefresh onClose
  */
 public interface LifecycleProcessor extends Lifecycle {
 

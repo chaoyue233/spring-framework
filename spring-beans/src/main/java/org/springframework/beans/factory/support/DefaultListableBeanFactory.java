@@ -16,62 +16,11 @@
 
 package org.springframework.beans.factory.support;
 
-import java.io.IOException;
-import java.io.NotSerializableException;
-import java.io.ObjectInputStream;
-import java.io.ObjectStreamException;
-import java.io.Serial;
-import java.io.Serializable;
-import java.lang.annotation.Annotation;
-import java.lang.ref.Reference;
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
-
 import jakarta.inject.Provider;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.TypeConverter;
-import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.BeanCurrentlyInCreationException;
-import org.springframework.beans.factory.BeanDefinitionStoreException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.beans.factory.BeanNotOfRequiredTypeException;
-import org.springframework.beans.factory.CannotLoadBeanClassException;
-import org.springframework.beans.factory.InjectionPoint;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
-import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.SmartFactoryBean;
-import org.springframework.beans.factory.SmartInitializingSingleton;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanDefinitionHolder;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.config.DependencyDescriptor;
-import org.springframework.beans.factory.config.NamedBeanHolder;
+import org.springframework.beans.factory.*;
+import org.springframework.beans.factory.config.*;
 import org.springframework.core.NamedThreadLocal;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.Ordered;
@@ -83,13 +32,22 @@ import org.springframework.core.log.LogMessage;
 import org.springframework.core.metrics.StartupStep;
 import org.springframework.lang.Contract;
 import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.CompositeIterator;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
+import org.springframework.util.*;
+
+import java.io.*;
+import java.lang.annotation.Annotation;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * Spring's default implementation of the {@link ConfigurableListableBeanFactory}
@@ -123,6 +81,8 @@ import org.springframework.util.StringUtils;
  * @see #addBeanPostProcessor
  * @see #getBean
  * @see #resolveDependency
+ *
+ * 功能比较全的一个Bean工厂
  */
 @SuppressWarnings("serial")
 public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFactory
@@ -1024,9 +984,13 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		this.preInstantiationPhase = true;
 		this.preInstantiationThread.set(PreInstantiation.MAIN);
 		try {
+			// 循环所有的beanNames 实例化
 			for (String beanName : beanNames) {
 				RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
 				if (!mbd.isAbstract() && mbd.isSingleton()) {
+					// 新版本的Spring支持并发实例化
+					// 实例化过程如果是同步的，在方法中就直接实例化
+					// 实例化过程如果是异步的，需要等待所有的bean实例化完成
 					CompletableFuture<?> future = preInstantiateSingleton(beanName, mbd);
 					if (future != null) {
 						futures.add(future);
@@ -1039,6 +1003,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			this.preInstantiationPhase = false;
 		}
 
+		// 等待所有的bean都实例化完成
 		if (!futures.isEmpty()) {
 			try {
 				CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).join();
@@ -1049,6 +1014,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		}
 
 		// Trigger post-initialization callback for all applicable beans...
+		// 实例化完成所有的bean后 统一处理post-initialization回调 即处理SmartInitializingSingleton扩展
+		// BeanPostProcessor是每一个bean初始化前后都会调用，而SmartInitializingSingleton是等待所有的bean实例化
 		for (String beanName : beanNames) {
 			Object singletonInstance = getSingleton(beanName, false);
 			if (singletonInstance instanceof SmartInitializingSingleton smartSingleton) {
@@ -1062,9 +1029,11 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 	@Nullable
 	private CompletableFuture<?> preInstantiateSingleton(String beanName, RootBeanDefinition mbd) {
+		// 判断是否支持后台实例化（有些bean比较耗时，可以使用后台实例化的方式）
 		if (mbd.isBackgroundInit()) {
 			Executor executor = getBootstrapExecutor();
 			if (executor != null) {
+				// 首先初始化dependsOn对应的bean
 				String[] dependsOn = mbd.getDependsOn();
 				if (dependsOn != null) {
 					for (String dep : dependsOn) {
@@ -1089,6 +1058,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 						"without bootstrap executor configured - falling back to mainline initialization");
 			}
 		}
+		// 如果当前bean是非懒加载的，直接实例化（一般都是直接走这一步）
 		if (!mbd.isLazyInit()) {
 			instantiateSingleton(beanName);
 		}
@@ -1111,14 +1081,22 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		}
 	}
 
+	/**
+	 * FactoryBean负责生产Bean
+	 * BeanFactory负责管理Bean的实例
+	 */
 	private void instantiateSingleton(String beanName) {
+		// 判断当前beanName是否对应的是一个FactoryBean
 		if (isFactoryBean(beanName)) {
+			// 如果当前beanName对应的是一个FactoryBean 加上FactoryBean前缀 实例化factoryBean本身
 			Object bean = getBean(FACTORY_BEAN_PREFIX + beanName);
+			// 对于需要急切实例化的，直接实例化factoryBean对应的Bean
 			if (bean instanceof SmartFactoryBean<?> smartFactoryBean && smartFactoryBean.isEagerInit()) {
 				getBean(beanName);
 			}
 		}
 		else {
+			// getBean就是实例化一个单例Bean
 			getBean(beanName);
 		}
 	}

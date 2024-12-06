@@ -16,9 +16,9 @@
 
 package org.springframework.transaction.support;
 
-import java.io.Flushable;
-
 import org.springframework.core.Ordered;
+
+import java.io.Flushable;
 
 /**
  * Interface for transaction synchronization callbacks.
@@ -67,6 +67,9 @@ public interface TransactionSynchronization extends Ordered, Flushable {
 	 * Suspend this synchronization.
 	 * Supposed to unbind resources from TransactionSynchronizationManager if managing any.
 	 * @see TransactionSynchronizationManager#unbindResource
+	 *
+	 * 事务挂起
+	 * 当前事务暂停执行，另外新开一个连接处理事务
 	 */
 	default void suspend() {
 	}
@@ -75,6 +78,8 @@ public interface TransactionSynchronization extends Ordered, Flushable {
 	 * Resume this synchronization.
 	 * Supposed to rebind resources to TransactionSynchronizationManager if managing any.
 	 * @see TransactionSynchronizationManager#bindResource
+	 *
+	 * 事务恢复
 	 */
 	default void resume() {
 	}

@@ -16,29 +16,22 @@
 
 package org.springframework.beans.factory.support;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.beans.BeanInstantiationException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.cglib.core.ClassLoaderAwareGeneratorStrategy;
 import org.springframework.cglib.core.SpringNamingPolicy;
-import org.springframework.cglib.proxy.Callback;
-import org.springframework.cglib.proxy.CallbackFilter;
-import org.springframework.cglib.proxy.Enhancer;
-import org.springframework.cglib.proxy.Factory;
-import org.springframework.cglib.proxy.MethodInterceptor;
-import org.springframework.cglib.proxy.MethodProxy;
-import org.springframework.cglib.proxy.NoOp;
+import org.springframework.cglib.proxy.*;
 import org.springframework.core.ResolvableType;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 /**
  * Default object instantiation strategy for use in BeanFactories.
@@ -50,6 +43,8 @@ import org.springframework.util.StringUtils;
  * @author Juergen Hoeller
  * @author Sam Brannen
  * @since 1.1
+ *
+ * 使用cglib的方式进行实例化
  */
 public class CglibSubclassingInstantiationStrategy extends SimpleInstantiationStrategy {
 
@@ -72,6 +67,11 @@ public class CglibSubclassingInstantiationStrategy extends SimpleInstantiationSt
 	private static final int METHOD_REPLACER = 2;
 
 
+	/**
+	 * 在有方法注入（lookup-method、replace-method）的场景，实例化需要通过代理来实现
+	 * lookup-method：使用其他bean的方法作为当前bean抽象方法的实现
+	 * replace-method：使用其他bean的方法重写当前bean的方法
+	 */
 	@Override
 	protected Object instantiateWithMethodInjection(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner) {
 		return instantiateWithMethodInjection(bd, beanName, owner, null);

@@ -16,13 +16,13 @@
 
 package org.springframework.beans.factory;
 
-import java.lang.annotation.Annotation;
-import java.util.Map;
-import java.util.Set;
-
 import org.springframework.beans.BeansException;
 import org.springframework.core.ResolvableType;
 import org.springframework.lang.Nullable;
+
+import java.lang.annotation.Annotation;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Extension of the {@link BeanFactory} interface to be implemented by bean factories
@@ -55,6 +55,8 @@ import org.springframework.lang.Nullable;
  * @since 16 April 2001
  * @see HierarchicalBeanFactory
  * @see BeanFactoryUtils
+ *
+ * 给bean工厂中的bean和beanDefinition提供了丰富的可枚举的能力
  */
 public interface ListableBeanFactory extends BeanFactory {
 

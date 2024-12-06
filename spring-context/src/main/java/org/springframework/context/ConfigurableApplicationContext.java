@@ -16,9 +16,6 @@
 
 package org.springframework.context;
 
-import java.io.Closeable;
-import java.util.concurrent.Executor;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -27,6 +24,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.io.ProtocolResolver;
 import org.springframework.core.metrics.ApplicationStartup;
 import org.springframework.lang.Nullable;
+
+import java.io.Closeable;
+import java.util.concurrent.Executor;
 
 /**
  * SPI interface to be implemented by most if not all application contexts.
@@ -51,6 +51,8 @@ public interface ConfigurableApplicationContext extends ApplicationContext, Life
 	 * @see org.springframework.context.support.AbstractXmlApplicationContext#setConfigLocation
 	 * @see org.springframework.web.context.ContextLoader#CONFIG_LOCATION_PARAM
 	 * @see org.springframework.web.servlet.FrameworkServlet#setContextConfigLocation
+	 *
+	 * 配置分割符，即同时解析多个xml可以使用以下分割符中的任意一个进行分割
 	 */
 	String CONFIG_LOCATION_DELIMITERS = ",; \t\n";
 

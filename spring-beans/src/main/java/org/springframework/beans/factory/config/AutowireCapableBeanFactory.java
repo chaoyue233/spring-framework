@@ -16,14 +16,14 @@
 
 package org.springframework.beans.factory.config;
 
-import java.util.Set;
-
 import org.springframework.beans.BeansException;
 import org.springframework.beans.TypeConverter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.lang.Nullable;
+
+import java.util.Set;
 
 /**
  * Extension of the {@link org.springframework.beans.factory.BeanFactory}
@@ -58,6 +58,9 @@ import org.springframework.lang.Nullable;
  * @see org.springframework.beans.factory.BeanFactoryAware
  * @see org.springframework.beans.factory.config.ConfigurableListableBeanFactory
  * @see org.springframework.context.ApplicationContext#getAutowireCapableBeanFactory()
+ *
+ * 提供自动装配的能力
+ * 并且包括bean生命周期相关的方法，比如创建、配置、属性填充、初始化
  */
 public interface AutowireCapableBeanFactory extends BeanFactory {
 

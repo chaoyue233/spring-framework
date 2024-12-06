@@ -78,6 +78,10 @@ class ApplicationContextAwareProcessor implements BeanPostProcessor {
 	}
 
 
+	/**
+	 * 拦截每一个bean 判断是否为Aware接口
+	 * 在初始化之前将对应的bean注入到对应的属性中
+	 */
 	@Override
 	@Nullable
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {

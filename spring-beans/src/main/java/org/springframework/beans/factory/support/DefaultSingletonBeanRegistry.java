@@ -16,28 +16,18 @@
 
 package org.springframework.beans.factory.support;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer;
-
-import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.BeanCreationNotAllowedException;
-import org.springframework.beans.factory.BeanCurrentlyInCreationException;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.*;
 import org.springframework.beans.factory.config.SingletonBeanRegistry;
 import org.springframework.core.SimpleAliasRegistry;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 /**
  * Generic registry for shared bean instances, implementing the
@@ -192,9 +182,14 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	@Nullable
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
 		// Quick check for existing instance without full singleton lock.
+		// singletonObjects 一级缓存，保存真正完全实例化的缓存
 		Object singletonObject = this.singletonObjects.get(beanName);
+		// 从一级缓存中找到就返回
+		// 一级缓存找不到，尝试从二级缓存中获取早期引用
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
+			// earlySingletonObjects 二级缓存，保存的是在创建bean的过程中，半初始化的bean（保存提前暴露的引用）
 			singletonObject = this.earlySingletonObjects.get(beanName);
+			// 二级缓存也找不到 先加锁 然后做二次检查
 			if (singletonObject == null && allowEarlyReference) {
 				if (!this.singletonLock.tryLock()) {
 					// Avoid early singleton inference outside of original creation thread.
@@ -205,7 +200,9 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					singletonObject = this.singletonObjects.get(beanName);
 					if (singletonObject == null) {
 						singletonObject = this.earlySingletonObjects.get(beanName);
+						// 二次检查二级缓存依然没有，调用三级缓存的工厂创建实例，删除三级缓存中的bean工厂并把实例放到二级缓存中
 						if (singletonObject == null) {
+							// singletonFactories 三级缓存，保存的是创建bean过程中创建的bean工厂（提前暴露）
 							ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 							if (singletonFactory != null) {
 								singletonObject = singletonFactory.getObject();

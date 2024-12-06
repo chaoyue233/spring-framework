@@ -67,7 +67,9 @@ public class GenericXmlApplicationContext extends GenericApplicationContext {
 	 * @param resourceLocations the resources to load from
 	 */
 	public GenericXmlApplicationContext(String... resourceLocations) {
+		// 加载资源文件，会将beanDefinition加载到beanFactory中（组合模式）
 		load(resourceLocations);
+		// 刷新容器 该方法定义在父类抽象类中，典型的模版方法设计模式
 		refresh();
 	}
 
@@ -125,6 +127,10 @@ public class GenericXmlApplicationContext extends GenericApplicationContext {
 	/**
 	 * Load bean definitions from the given XML resources.
 	 * @param resourceLocations one or more resource locations to load from
+	 *
+	 * 加载xml文件（使用jdk自带的xml解析api）
+	 * 判断命名空间是否匹配，判断profile是否激活，解析标签
+	 * 生成BeanDefinition并注册当当前ApplicationContext中
 	 */
 	public void load(String... resourceLocations) {
 		this.reader.loadBeanDefinitions(resourceLocations);
