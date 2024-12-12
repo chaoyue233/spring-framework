@@ -18,16 +18,16 @@ public class BeanDefinitionTest {
 	 */
 	@Test
 	public void testGenericBeanDefinition() {
+		// 手动创建一个BeanDefinition
 		GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
 		beanDefinition.setBeanClassName("chaoyue.study.bean.User");
 		beanDefinition.setLazyInit(false);
-		// 成员变量
+		// 封装成员变量
 		MutablePropertyValues mutablePropertyValues = new MutablePropertyValues();
 		mutablePropertyValues.add("name", "chaoyue");
 		mutablePropertyValues.add("age", 20);
 		beanDefinition.setPropertyValues(mutablePropertyValues);
-
-		System.out.println(beanDefinition);
+		log.info("beanDefinition -> {}", beanDefinition);
 	}
 
 	/**
@@ -48,7 +48,7 @@ public class BeanDefinitionTest {
 		RootBeanDefinition rootBeanDefinition = new RootBeanDefinition();
 		rootBeanDefinition.overrideFrom(beanDefinition);
 
-		System.out.println(rootBeanDefinition);
+		log.info("rootBeanDefinition -> {}", rootBeanDefinition);
 	}
 
 	@Test
@@ -69,6 +69,7 @@ public class BeanDefinitionTest {
 
 	/**
 	 * BeanDefinitionRegistry：管理BeanDefinition的容器
+	 * 本质上就是Map，用来存放所有的BeanDefinition，key为beanName
 	 */
 	@Test
 	public void testBeanDefinitionRegistry() {
@@ -95,10 +96,11 @@ public class BeanDefinitionTest {
 	@Test
 	public void testXmlBeanDefinitionReader() {
 		BeanDefinitionRegistry registry = new SimpleBeanDefinitionRegistry();
+		// 构建Reader需要一个registry 用来存放解析后的BeanDefinition
 		BeanDefinitionReader beanDefinitionReader = new XmlBeanDefinitionReader(registry);
 		// 通过解析xml的方式读取BeanDefinition
 		beanDefinitionReader.loadBeanDefinitions("bean.xml");
-		System.out.println(registry.getBeanDefinitionCount());
+		log.info("beanDefinitionCount -> {}", registry.getBeanDefinitionCount());
 	}
 
 	/**
@@ -111,6 +113,6 @@ public class BeanDefinitionTest {
 		ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(registry);
 		// 通过包扫描的方式读取BeanDefinition
 		scanner.scan("chaoyue.study.beans");
-		System.out.println(registry.getBeanDefinitionCount());
+		log.info("beanDefinitionCount -> {}", registry.getBeanDefinitionCount());
 	}
 }

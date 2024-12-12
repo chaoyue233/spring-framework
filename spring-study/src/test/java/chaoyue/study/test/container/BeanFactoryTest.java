@@ -60,8 +60,8 @@ public class BeanFactoryTest {
 
 	/**
 	 * BeanFactoryPostProcessor 会在BeanFactory创建完成之后被调用
-	 * 注意这个是ApplicationContext去触发的，即ApplicationContext创建BeanFactory完成后，去触发的PostProcessor调用
-	 * 这边调用了chaoyue.study.processor.MyBeanFactoryPostProcessor
+	 * 注意这个是ApplicationContext去触发的（在refresh方法中），即ApplicationContext创建BeanFactory完成后，去触发的PostProcessor调用
+	 * 这边调用了自定义的BeanFactoryPostProcessor {@link chaoyue.study.processor.MyBeanFactoryPostProcessor}
 	 */
 	@Test
 	public void testBeanFactoryPostProcessor(){

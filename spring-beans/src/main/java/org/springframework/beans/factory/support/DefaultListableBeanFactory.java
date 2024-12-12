@@ -968,6 +968,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		return (this.preInstantiationPhase ? this.preInstantiationThread.get() != PreInstantiation.BACKGROUND : null);
 	}
 
+	/**
+	 * 实例化所有非懒加载的单例Bean
+	 */
 	@Override
 	public void preInstantiateSingletons() throws BeansException {
 		if (logger.isTraceEnabled()) {
@@ -976,6 +979,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 		// Iterate over a copy to allow for init methods which in turn register new bean definitions.
 		// While this may not be part of the regular factory bootstrap, it does otherwise work fine.
+		// beanDefinitionNames其实就是目前BeanFactory中所有BeanDefinition的beanName
 		List<String> beanNames = new ArrayList<>(this.beanDefinitionNames);
 
 		// Trigger initialization of all non-lazy singleton beans...
@@ -986,11 +990,11 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		try {
 			// 循环所有的beanNames 实例化
 			for (String beanName : beanNames) {
+				// 归一化处理BeanDefinition为RootBeanDefinition
 				RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
 				if (!mbd.isAbstract() && mbd.isSingleton()) {
-					// 新版本的Spring支持并发实例化
-					// 实例化过程如果是同步的，在方法中就直接实例化
-					// 实例化过程如果是异步的，需要等待所有的bean实例化完成
+					// 新版本的Spring支持并发实例化 支持异步
+					// 实例化bean就是调用BeanFactory的doGetBean方法，通过反射进行创建
 					CompletableFuture<?> future = preInstantiateSingleton(beanName, mbd);
 					if (future != null) {
 						futures.add(future);
