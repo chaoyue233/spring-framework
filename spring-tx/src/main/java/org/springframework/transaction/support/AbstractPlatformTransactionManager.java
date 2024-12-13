@@ -363,6 +363,7 @@ public abstract class AbstractPlatformTransactionManager
 			throws TransactionException {
 
 		// Use defaults if no transaction definition given.
+		// 判断是否有配置事务属性，如果没有则使用默认配置
 		TransactionDefinition def = (definition != null ? definition : TransactionDefinition.withDefaults());
 
 		// transaction 就是DataSourceTransactionManager（在JDBC场景下）

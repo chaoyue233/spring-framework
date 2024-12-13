@@ -8,6 +8,10 @@ import org.springframework.aop.framework.ProxyFactory;
 
 public class AopTest {
 
+	/**
+	 * ProxyFactory 代理工厂
+	 * 可以通过代理工厂方便的创建代理对象
+	 */
 	@Test
 	public void testProxyFactory() {
 		// 原始对象
@@ -17,7 +21,6 @@ public class AopTest {
 			System.out.println("前置通知");
 			method.invoke(target, args);
 		};
-
 
 		// 代理工厂 创建代理对象
 		ProxyFactory proxyFactory = new ProxyFactory();

@@ -1018,8 +1018,9 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		}
 
 		// Trigger post-initialization callback for all applicable beans...
-		// 实例化完成所有的bean后 统一处理post-initialization回调 即处理SmartInitializingSingleton扩展
+		// 实例化完成所有的bean后 统一处理处理SmartInitializingSingleton扩展
 		// BeanPostProcessor是每一个bean初始化前后都会调用，而SmartInitializingSingleton是等待所有的bean实例化
+		// 遍历所有完成实例化的初始Bean，判断是实现了 SmartInitializingSingleton 接口 如果实现了就调用其afterSingletonsInstantiated方法
 		for (String beanName : beanNames) {
 			Object singletonInstance = getSingleton(beanName, false);
 			if (singletonInstance instanceof SmartInitializingSingleton smartSingleton) {
@@ -1034,6 +1035,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	@Nullable
 	private CompletableFuture<?> preInstantiateSingleton(String beanName, RootBeanDefinition mbd) {
 		// 判断是否支持后台实例化（有些bean比较耗时，可以使用后台实例化的方式）
+		// 如果支持后台实例化，则使用线程池的方式进行异步处理。
 		if (mbd.isBackgroundInit()) {
 			Executor executor = getBootstrapExecutor();
 			if (executor != null) {
@@ -1088,6 +1090,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 	/**
 	 * FactoryBean负责生产Bean
 	 * BeanFactory负责管理Bean的实例
+	 * FactoryBean很适合用来作为第三方组件的注入方式，可以帮助使用方隐藏复杂的生成逻辑。使用者只需要引入对应组件的FactroyBean就好了
 	 */
 	private void instantiateSingleton(String beanName) {
 		// 判断当前beanName是否对应的是一个FactoryBean

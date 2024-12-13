@@ -466,7 +466,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		try {
 			// Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
 			// 给Bean后置处理器一个机会，返回一个代理对象而不是原始对象
-			// 此时bean还没有实例化
+			// 注意：此时bean还没有实例化，相当于后面不会再实例化原始的bean了，直接使用代理对象
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
 			if (bean != null) {
 				return bean;
@@ -478,6 +478,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		try {
+			// 【核心】创建Bean
 			Object beanInstance = doCreateBean(beanName, mbdToUse, args);
 			if (logger.isTraceEnabled()) {
 				logger.trace("Finished creating instance of bean '" + beanName + "'");
@@ -513,12 +514,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			throws BeanCreationException {
 
 		// Instantiate the bean.
+		// BeanWrapper：bean包装，可以使用里面提供的一些反射api进行属性赋值（属性填充）
 		BeanWrapper instanceWrapper = null;
 		if (mbd.isSingleton()) {
 			instanceWrapper = this.factoryBeanInstanceCache.remove(beanName);
 		}
 		if (instanceWrapper == null) {
-			// 实例化bean 并且包装成BeanWrapper
+			// 【实例化】 并且包装成BeanWrapper
 			instanceWrapper = createBeanInstance(beanName, mbd, args);
 		}
 		Object bean = instanceWrapper.getWrappedInstance();
@@ -563,11 +565,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		// bean是已经实例化好，但是未初始化的原始的bean
 		Object exposedObject = bean;
 		try {
-			// 属性填充
+			// 【属性填充】
 			populateBean(beanName, mbd, instanceWrapper);
-			// 初始化 beanPostProcessor会在这个方法中执行
-			// 处理完的bean可能是原始的bean也可能是个代理bean
-			// AOP其实就是依赖BeanPostProcessor实现的
+			// 【初始化】 beanPostProcessor会在这个方法中执行
+			// 初始化后的bean可能是原始的bean也可能是个代理bean（AOP其实就是依赖BeanPostProcessor实现的）
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
 		}
 		catch (Throwable ex) {
@@ -1403,8 +1404,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		PropertyValues pvs = (mbd.hasPropertyValues() ? mbd.getPropertyValues() : null);
 
 		// 判断自动装配的方式 AutowireMode 是在Bean的定义中配置的
-		// 由于Spring开始只支持xml，后续才支持注解
-		// 所以会发现spring中的很多基础逻辑都是基于原始的xml的，而注解的处理通常都是由扩展实现
+		// 这个autowireMode是在xml中配置的，由于Spring开始只支持xml，后续才支持注解
+		// spring中的很多基础逻辑都是基于原始的xml的，而注解的处理通常都是由扩展实现
 		int resolvedAutowireMode = mbd.getResolvedAutowireMode();
 		if (resolvedAutowireMode == AUTOWIRE_BY_NAME || resolvedAutowireMode == AUTOWIRE_BY_TYPE) {
 			MutablePropertyValues newPvs = new MutablePropertyValues(pvs);
@@ -1800,7 +1801,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		// 在初始化后执行所有beanPostProcessor.postProcessAfterInitialization
-		// 里面的aop生成代理就是使用 AbstractAutoProxyCreator 来创建的
+		// 【AOP生成代理】就是使用 AbstractAutoProxyCreator 来创建的
 		if (mbd == null || !mbd.isSynthetic()) {
 			wrappedBean = applyBeanPostProcessorsAfterInitialization(wrappedBean, beanName);
 		}
